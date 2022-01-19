@@ -1,9 +1,3 @@
-% Rondena Matteo 847381
-
-% Vigotti Stefano 845129
-
-% Radaelli Davide 869901
-
 # Prolog URI Parser
 > Un Parser per stringhe URI semplificate scritto in SWI-Prolog.
 
@@ -36,6 +30,9 @@ Esso controlla che la stringa rispetti la grammatica, e se così è ne restituis
   - [id44 (e rest_id44)](#id44-e-rest_id44)
   - [id8](#id8)
   - [id_alnum](#id_alnum)
+- [Testing](#testing)
+  - [Struttura del file di test](#struttura-del-file-di-test)
+  - [Running Tests](#running-tests)
 
 
 ## Grammatica
@@ -255,3 +252,75 @@ Utilizza `flatten/2` per evitare liste innestate.
 
 ### id_alnum
 Controlla che la lista sia formata da solo caratteri alfanumerici utilizzando il predicato `char_type/2` cone secondo argomento `alnum`. Data la definizione ricorsiva utilizza `flatten/2` per ottenere una lista di soli caratteri, priva di liste innestate.
+
+## Testing
+
+Il testing è effettuato tramite test automatici scritti seguendo la documentazione sui [Prolog Unit Tests](https://www.swi-prolog.org/pldoc/doc_for?object=section(%27packages/plunit.html%27)).
+
+### Struttura del file di test
+Il file di test `uri-parse.plt` contiene 1309 casi test che il programma passa con esito positivo.
+E' possibile personalizzare e scrivere il proprio file di test in estensione `.plt` partendo dal file già presente.
+
+All'inizio del codice principale del progetto `uri-parse.pl` è stata aggiunta la linea di codice
+```sh
+:- module(uri_parse, [uri_parse/2]).
+```
+
+Per poter avviare i test.
+
+I test con esito positivo sono del tipo
+```sh
+test(true_scheme) :- uri_parse("s:", uri('s', [], [], 80, [], [], [])).
+```
+
+E quelli con esito negativo
+```sh
+test(false_scheme) :- \+ uri_parse("s", _).
+```
+
+Come è possibile vedere viene utilizzato l'operatore `\+` che restiituisce `true.` quando non è possibile unificare e risolvere un test sul predicato (e il terminale restituisce dunque `false.`).
+
+La struttura generale è quindi
+```sh
+test(id_test) :- predicato(input, risultato). | \+ predicato(input, _).
+```
+
+Dove:
+- `id_test` è il nome assegnato al test, utile per capire quali test non passano
+- `predicato` è il nome del predicato su cui si sta effetuando il test
+- `input` è l'input che prende il predicato
+- `risultato` è il risultato corretto che si ottiene con l'input passato
+- `\+` è usato quando non si può ottenere un risultato con l'input passato (`_`)
+
+### Running Tests
+Per runnare i test personalizzati, assicurarsi che il file `.pl` e il file di test `.plt` siano nella stessa directory.
+
+Dopodichè segnatevi il percorso della directory in cui avete messo il programma e i file di test, che su windows sarà del tipo
+```sh
+C:/Users/.../Directory
+```
+
+A questo punto aprite SWI-Prolog e lanciate il comando:
+```sh
+working_directory(OldDir, 'NewDir').
+```
+Che vi permetterà di spostarvi nella nuova directory `NewDir`.
+`NewDir` va ovviamente sostituito con il percorso della cartella dove avete messo i file e che avete salvato in precedenza.
+
+Dopodichè lanciate i seguenti comandi:
+```sh
+['uri-parse'].
+
+load_test_files([]).
+
+run_tests.
+```
+
+In alternativa si può anche lanciare un singolo comando unico:
+```sh
+['uri-parse'], load_test_files([]), run_tests.
+```
+
+_Nota: in questo caso il comando è `['uri-parse']`, ma più in generale sarebbe `['test_file_name']` con il nome del vostro file di test `.plt` come `test_file_name`._
+
+![Alt text](Tests.png?raw=true "Tests")

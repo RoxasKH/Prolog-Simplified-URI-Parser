@@ -1,10 +1,8 @@
 %% -*- Mode: Prolog -*-
 
-% Rondena Matteo 847381
-% Vigotti Stefano 845129
-% Radaelli Davide 869901
-
 % uri-parse.pl
+
+:- module(uri_parse, [uri_parse/2]).
 
 % uri_parse/2
 uri_parse(URIString, URI) :-
