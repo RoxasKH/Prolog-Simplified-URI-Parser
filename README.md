@@ -111,7 +111,7 @@ Note: port is returned as 80 by default even in cases where authority is not pre
 
 ## Predicates
 
-### uri_parse / 2
+### uri_parse/2
 
 `uri_parse` is the main predicate with which you can parse a string.
 In fact, it has 2 arguments, `URIString` and `URI`; the first is the string you want to parse, while the second is the resulting structure containing the components of the URI.
