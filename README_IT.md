@@ -90,7 +90,7 @@ _zos_:
 ```sh
 scheme-syntax ::= [authorithy] [‘/’ zospath [‘?’ query] [‘#’ fragment]]
 zospath ::= <id44> [‘(’ <id8> ‘)’]
-id44 :== (<caratteri alfanumerici> | ‘.’)+
+id44 ::= (<caratteri alfanumerici> | ‘.’)+
 id8 ::= (<caratteri alfanumerici>)+
 
 ---

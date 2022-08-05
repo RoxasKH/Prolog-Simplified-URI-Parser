@@ -88,10 +88,10 @@ scheme-syntax :: = [userinfo]
 _zos_:
 
 ```sh
-scheme-syntax :: = [authorithy] [‘/’ zospath [‘?’ query] [‘#’ fragment]]
-zospath :: = <id44> [‘(’ <id8> ‘)’]
-id44: == (<alphanumeric characters> | ‘.’) +
-id8 :: = (<alphanumeric characters>) +
+scheme-syntax ::= [authorithy] [‘/’ zospath [‘?’ query] [‘#’ fragment]]
+zospath ::= <id44> [‘(’ <id8> ‘)’]
+id44 ::= (<alphanumeric characters> | ‘.’) +
+id8 ::= (<alphanumeric characters>) +
 
 ---
 
