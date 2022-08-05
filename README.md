@@ -1,20 +1,20 @@
 # Prolog URI Parser
-> Un Parser per stringhe URI semplificate scritto in SWI-Prolog.
+> A simplified URI strings parser written in SWI-Prolog.
 
-Il programma permette di effettuare il parsing di stringhe URI che seguono una grammatica semplificata rispetto allo standard RFC3986.
-Esso controlla che la stringa rispetti la grammatica, e se così è ne restituisce le componenti principali, altrimenti restituisce false.
+The program allows you to parse URI strings that follow a simplified grammar compared to the RFC3986 standard.
+It checks that the string matches the grammar, and if so it returns its main components, otherwise it returns false.
 
 ## Table of Contents
 
-- [Grammatica](#grammatica)
-	- [Sintassi Speciali](#sintassi-speciali)
-	- [Componenti di un URI](#componenti-di-un-uri)
-- [Predicati](#predicati)
-	- [uri_parse/2](#uri_parse2)
-	- [uri_display/2 e uri_display/1](#uri_display2-e-uri_display1)
+- [Grammar](#grammar)
+  - [Special Syntaxes](#special-syntaxes)
+  - [Components of a URI](#components-of-a-uri)
+- [Predicates](#predicates)
+  - [uri_parse/2](#uri_parse2)
+  - [uri_display/2 and uri_display/1](#uri_display2-and-uri_display1)
 - [DCG (Definite Clause Grammar)](#dcg-definite-clause-grammar)
   - [uridcg](#uridcg)
-  - [uripath, uriquery e urifragment (mail_host, news_host e auth_port)](#uripath-uriquery-e-urifragment-mail_host-news_host-e-auth_port)
+  - [uripath, uriquery and urifragment (mail_host, news_host and auth_port)](#uripath-uriquery-and-urifragment-mail_host-news_host-and-auth_port)
   - [scheme](#scheme)
   - [authority](#authority)
   - [userinfo](#userinfo)
@@ -27,17 +27,17 @@ Esso controlla che la stringa rispetti la grammatica, e se così è ne restituis
   - [id_host](#id_host)
   - [digit](#digit)
   - [zospath](#zospath)
-  - [id44 (e rest_id44)](#id44-e-rest_id44)
+  - [id44 (and rest_id44)](#id44-and-rest_id44)
   - [id8](#id8)
   - [id_alnum](#id_alnum)
 - [Testing](#testing)
-  - [Struttura del file di test](#struttura-del-file-di-test)
+  - [Test files structure](#test-files-structure)
   - [Running Tests](#running-tests)
 
 
-## Grammatica
+## Grammar
 
-La grammatica semplificata rispettata è la seguente:
+The respected simplified grammar is as follows:
 
 ```sh
 URI ::= URI1 | URI2
@@ -45,269 +45,269 @@ URI ::= URI1 | URI2
 URI1 ::= scheme ‘:’ [authorithy] [‘/’ [path] [‘?’ query] [‘#’ fragment]]
 URI2 ::= scheme ‘:’ scheme-syntax
 
-scheme ::= <identificatore>
-authorithy ::= ‘//’ [ userinfo ‘@’ ] host [‘:’ port]
-userinfo ::= <identificatore>
-host ::= <identificatore-host> [‘.’ <identificatore-host>]* | indirizzo-IP
+scheme ::= <identifier>
+authorithy ::= ‘//’ [userinfo ‘@’] host [‘:’ port]
+userinfo ::= <identifier>
+host ::= <host-identifier> [‘.’ <host-identifier>]* | IP-address
 port ::= <digit>+
-indirizzo-IP ::= <NNN.NNN.NNN.NNN – con N un digit e NNN < 255>
-path ::= <identificatore> [‘/’ <identificatore>]*
-query ::= <caratteri senza ‘#’>+
-fragment ::= <caratteri>+
-<identificatore> ::= <caratteri senza ‘/’, ‘?’, ‘#’, ‘@’, e ‘:’>+
-<identificatore-host> ::= <caratteri senza ‘.’, ‘/’, ‘?’, ‘#’, ‘@’, e ‘:’>+
-<digit> ::= ‘0’ |‘1’ |‘2’ |‘3’ |‘4’ |‘5’ |‘6’ |‘7’ |‘8’ |‘9’
+IP-address ::= <NNN.NNN.NNN.NNN - with N one digit and NNN <255>
+path ::= <identifier> [‘/’ <identifier>]*
+query ::= <characters excluding ‘#’>+
+fragment ::= <characters>+
+<identifier> ::= <characters excluding ‘/’, ‘?’, ‘#’, ‘@’, and ‘:’>+
+<host-identifier> ::= <characters excluding ‘.’, ‘/’, ‘?’, ‘#’, ‘@’, and ‘:’>+
+<digit> ::= ‘0’ | ‘1’ | ‘2’ | ‘3’ | ‘4’ | ‘5’ | ‘6’ | ‘7’ | ‘8’ | ‘9’
 
-scheme-syntax ::= <sintassi speciale>
+scheme-syntax ::= <special syntax>
 ```
 
-### Sintassi Speciali
+### Special Syntaxes
 
-URI2 rappresenta la grammatica da rispettare per alcuni schemi speciali. Il parsing delle stringhe è case-insensitive per cui schemi come _"MaIlTo"_ o _"MAILTO"_ sono riconosciuti come schemi speciali _"mailto"_ e così via.
+URI2 represents the grammar to be respected for some special schemes. String parsing is case-insensitive so patterns like _ "MaIlTo" _ or _ "MAILTO" _ are recognized as special patterns _"mailto"_ and so on.
 
-**Schemi speciali:**
+**Special schemes:**
 
 _mailto_:
 
 ```sh
-scheme-syntax ::= [userinfo [‘@’ host]]
+scheme-syntax :: = [userinfo ['@' host]]
 ```
 
 _news_:
 
 ```sh
-scheme-syntax ::= [host]
+scheme-syntax :: = [host]
 ```
 
-_tel_ e _fax_:
+_tel_ and _fax_:
 
 ```sh
-scheme-syntax ::= [userinfo]
+scheme-syntax :: = [userinfo]
 ```
 
 _zos_:
 
 ```sh
-scheme-syntax ::= [authorithy] [‘/’ zospath [‘?’ query] [‘#’ fragment]]
-zospath ::= <id44> ['(' <id8> ')']
-id44 :== (<caratteri alfanumerici> | ‘.’)+
-id8 ::= (<caratteri alfanumerici>)+
+scheme-syntax :: = [authorithy] [‘/’ zospath [‘?’ query] [‘#’ fragment]]
+zospath :: = <id44> [‘(’ <id8> ‘)’]
+id44: == (<alphanumeric characters> | ‘.’) +
+id8 :: = (<alphanumeric characters>) +
 
 ---
 
-dove sia id44 che id8 devono iniziare con un carattere alfabetico e id44 non può terminare con un punto.
-Inoltre la lunghezza di id44 non deve superare i 44 caratteri e quella di id8 non deve superare gli 8.
+where both id44 and id8 must start with an alphabetic character and id44 cannot end with a period.
+Furthermore, the length of id44 must not exceed 44 characters and that of id8 must not exceed 8.
 ```
 
-### Componenti di un URI
+### Components of a URI
 
-Le componenti principali di un URI che vengono restituite dal programma sono, in ordine:
+The main components of a URI that are returned by the program are, in order:
 
 `Scheme, Userinfo, Host, Port, Path, Query, Fragment`
 
-Nella struttura restituita dal programma, i campi mancanti sono restituiti come lista vuota `[]`, invece se presenti sono restituiti come atomi, fatta eccezione per la port, che è restituita come numero intero (e come 80 di default in caso non sia presente).
+In the structure returned by the program, the missing fields are returned as an empty list `[]`, instead if present they are returned as atoms, except for the port, which is returned as an integer (and as 80 by default if it's not present).
 
-Nota: port è restituito a 80 di default anche nei casi in cui authority non è presente del tutto e negli schemi speciali che non la considerano.
+Note: port is returned as 80 by default even in cases where authority is not present at all and in special schemes that do not consider it.
 
-## Predicati
+## Predicates
 
-### uri_parse/2
+### uri_parse / 2
 
-`uri_parse` è il predicato principale con il quale è possibile effettuare il parsing di una stringa.
-Esso infatti presenta 2 argomenti, `URIString` e `URI`; il primo è la stringa che si vuole parsare, mentre il secondo è la struttura risultante contenente le componenti dell'URI.
-Il predicato non è invertibile ma può rispondere a query con termini parzialmente istanziati come da consegna.
+`uri_parse` is the main predicate with which you can parse a string.
+In fact, it has 2 arguments, `URIString` and `URI`; the first is the string you want to parse, while the second is the resulting structure containing the components of the URI.
+The predicate is not invertible but can answer queries with partially instantiated terms as per delivery.
 
-Funzionamento:
+Operation:
 
-1. Il predicato controlla innanzitutto che la Stringa passatagli sia effettivamente una stringa.
-2. Dopodichè converte la stringa in una lista di caratteri utilizzando il predicato `string_chars/2`.
-3. A questo punto utilizzando `phrase/2`, passa la lista di caratteri ad `uridcg` che si occupa del vero e proprio parsing e dunque del controllo del rispetto della grammatica.
-4. Infine, se la stringa passa il controllo, viene restituita la struttura risultante, nella forma
+1. The predicate first checks that the String passed to it is actually a string.
+2. It then converts the string to a character list using the `string_chars/2` predicate.
+3. At this point, using `phrase/2`, it passes the list of characters to `uridcg` which takes care of the actual parsing and therefore of checking compliance with the grammar.
+4. Finally, if the string passes the check, the resulting structure is returned, in the form
 
 `uri(Scheme, Userinfo, Host, Port, Path, Query, Fragment).`
 
-### uri_display/2 e uri_display/1
+### uri_display/2 and uri_display/1
 
-Gli `uri_display` sono 2 predicati che permettono la stampa di una struttura URI su uno stream.
+The `uri_display` are 2 predicates that allow the printing of a URI structure on a stream.
 
-`uri_display/2` ha 2 argomenti, la struttura URI e lo stream su cui deve stampare, e sfrutta il predicato `format/3` per stampare sullo stream che gli viene passato le componenti dell'URI in una maniera in cui sono chiaramente distinguibili.
+`uri_display/2` has 2 arguments, the URI structure and the stream it should print to, and uses the `format/3` predicate to print the URI components on the stream it is passed in a way that they are clearly distinguishable .
 
-`uri_display/1` invece richiama semplicemente il predicato a 2 argomenti, passandogli come stream `current_output` che altro non è che il terminale di SWI-Prolog, permettendo così una più immediata stampa su terminale.
+`uri_display/1` instead simply calls the predicate with 2 arguments, passing it `current_output` as a stream which is nothing more than the terminal of SWI-Prolog, thus allowing a more immediate printing on the terminal.
 
-I predicati non controllano la validità delle componenti della struttura che gli viene passata, ma controllano che la struttura passata sia della forma indicata e abbia quindi i 7 elementi necessari per la stampa.
+The predicates do not check the validity of the components of the structure that is passed to them, but they check that the passed structure is of the indicated form and therefore has the 7 elements necessary for printing.
 
-E' possibile comunque utilizzarli in combinazione con il predicato `uri_parse` in questa maniera
+However, it is possible to use them in combination with the `uri_parse` predicate in this way
 
-`uri_parse(URIString, URI), uri_display(URI).`
+`uri_parse(URIString, URI), uri_display(URI) .`
 
-Passandogli un URI sottoforma di stringa. In questo modo `uri_parse` si occuperà di controllare la validità della stringa, e se così fosse, `uri_display` effettuerebbe la stampa della struttura risultante. Se la stringa non fosse valida, verrà invece restituito false.
+Passing it a URI in the form of a string. This way `uri_parse` will take care of checking the validity of the string, and if so,` uri_display` would print the resulting structure. If the string is invalid, false will be returned instead.
 
-Nota: utilizzando `uri_display_1` verrà effettuata su terminale anche la stampa effetto collaterale di `uri_parse`.
+Note: using `uri_display_1` will also print side effect of `uri_parse` on the terminal.
 
 ## DCG (Definite Clause Grammar)
 
-Come detto in precedenza, il predicato principale sfrutta il predicato `phrase/2` per passare la lista di caratteri ottenuta dalla stringa a `uridcg` che è una DCG.
+As mentioned earlier, the main predicate uses the `phrase/2` predicate to pass the list of characters obtained from the string to `uridcg` which is a DCG.
 
-Una DCG, o _Definite Clause Grammar_, non è altro che "zucchero sintattico" per le normali _Definite Clauses_ in Prolog, e infatti possono volendo essere tradotte in normali predicati.
+A DCG, or _Definite Clause Grammar_, is nothing more than "syntactic sugar" for the normal _Definite Clauses_ in Prolog, and in fact they can be translated into normal predicates if desired.
 
-Per esempio, le regole:
+For example, the rules:
 
 ```sh
 a --> a, b.
 a --> [a].
 b --> [b].
 ```
-Possono essere tradotte in
+They can be translated into
 ```sh
 a(A, C) :- a(A, B), b(B, C).
 a([a|X], X).
 b([b|X], X).
 ```
 
-Esse però semplificano di molto la scrittura e la leggibilità di un programma, e sono particolarmente utili per descrivere una grammatica e in generale quindi anche per effettuare parsing di stringhe.
+However, they greatly simplify the writing and readability of a program, and are particularly useful for describing a grammar and therefore also for parsing strings in general.
 
-Le regole di una DCG si compongono, come nell'esempio, di una testa (head) e di un corpo (body), separati da "-->".
-Nel corpo possono essere presenti altre regole, caratteri terminali racchiusi tra parentesi quadre (`[]`), e tra parentesi graffe (`{}`) è possibile aggiungere del normale codice Prolog.
+The rules of a DCG are made up, as in the example, of a head (head) and a body (body), separated by "-->".
+In the body there may be other rules, terminal characters enclosed in square brackets (`[]`), and in braces (`{}`) you can add some normal Prolog code.
 
-Nel programma, le DCG oltre ad occuparsi di controllare se la lista di caratteri rispetti la grammatica da loro definita, restituiscono anche ciò che la rispetta (eccetto i delimitatori), facendo in questo modo gran parte del lavoro e ricostruendo tramite backtracking gli elementi necessari.
+In the program, the DCGs in addition to checking if the list of characters respects the grammar they define, also return what respects it (except the delimiters), doing in this way much of the work and reconstructing the necessary elements by backtracking.
 
-E' presente inoltre l'utilizzo di numerosi green cut per evitare che la query cerchi di unificare con altri predicati e restituisca un solo risultato.
+The use of numerous green cuts is also present to avoid that the query tries to unify with other predicates and returns only one result.
 
 ### uridcg
-Questa regola definisce la grammatica di URI1 e URI2, ne controlla la correttezza su una lista di caratteri e ne restituisce la struttura
+This rule defines the grammar of URI1 and URI2, checks their correctness on a list of characters and returns their structure
 
-	uri(Scheme, Userinfo, Host, Port, Path, Query, Fragment)
+  uri(Scheme, Userinfo, Host, Port, Path, Query, Fragment)
 
-Per quando riguarda URI1 sono definiti 2 predicati, uno in cui è presente il blocco `[‘/’ [path] [‘?’ query] [‘#’ fragment]]` e uno senza.
-L'opzionalità di `[authority]` è invece gestita in authority stessa.
-Inoltre essa fa uso del predicato aggiuntivo `not_special/1` per controllare che lo `scheme` parsato non appartenga agli schemi speciali.
+As far as URI1 is concerned, 2 predicates are defined, one in which there is the block `[‘/’ [path] [‘?’ Query] [‘#’ fragment]]` and one without.
+The optionality of `[authority]` is instead managed in authority itself.
+It also makes use of the additional predicate `not_special/1` to check that the parsed `scheme` does not belong to special schemes.
 
-Per quanto riguarda URI2 sono invece presenti molteplici predicati per ogni schema speciale, che definiscono la loro scheme-syntax e che sfruttano il predicato `downcase_atom/2` per convertire temporaneamente lo scheme ottenuto in lowercase e controllare se è uguale o meno al corrispondente schema speciale.
-L'utilizzo del predicato è necessario per implementare il case-insensitive del parsing.
+As for URI2, on the other hand, there are multiple predicates for each special scheme, which define their scheme-syntax and which exploit the `downcase_atom/2` predicate to temporarily convert the obtained scheme into lowercase and check if it is equal or not to the corresponding special scheme.
+The use of the predicate is necessary to implement the case-insensitive of parsing.
 
-### uripath, uriquery e urifragment (mail_host, news_host e auth_port)
-Sono DCG intermedie necessarie per la conversione di path, query e fragment in atomo attraverso l'utilizzo del predicato `atom_chars/2`, ma anche per il controllo della presenza di queste ultime.
-I predicati _uriquery_ e _urifragment_ controllano anche la presenza rispettivamente dei caratteri '?' e '#' prima di query fragment.
-Infine se presenti richiamano le DCG di _path_, _query_ e _fragment_ per controllarne la correttezza e l'assenza di caratteri non validi.
+### uripath, uriquery and urifragment (mail_host, news_host and auth_port)
+They are intermediate DCGs necessary for the conversion of path, query and fragment to atom through the use of the `atom_chars/2` predicate, but also for checking the presence of the latter.
+The predicates _uriquery_ and _urifragment_ also respectively check for the presence of the '?' and '#' characters before query and fragment.
+Finally, if present, they call the _path_, _query_ and _fragment_ DCGs to check their correctness and the absence of invalid characters.
 
-Se invece non sono presenti, ogni predicato ha una versione che se incontra la lista vuota, restituisce la lista vuota.
+Instead, if they're not present, each predicate has a version which if it encounters the empty list, it returns the empty list.
 
-Lo stesso ragionamento vale per _mail_host_ e _news_host_ per i loro rispettivi schemi speciali e per _auth_port_ per quanto riguarda authority. L'unica differenza è l'utilizzo di `number_chars/2` in _auth_port_ per restituire la porta come numero intero invece che atomo.
+The same reasoning applies to _mail_host_ and _news_host_ for their respective special schemes and for _auth_port_ for authority. The only difference is the use of `number_chars/2` in _auth_port_ to return the port as an integer instead of an atom.
 
 ### scheme
-Semplicemente richiama _id_ e converte il risultato di _id_ in atomo utilizzando nuovamente atom_chars.
+It simply calls _id_ and converts the result of _id_ to atom using atom_chars again.
 
 ### authority
-Sono implementati 3 predicati:
-- i primi 2 rappresentano la grammatica di authority, in uno è presente userinfo mentre nell'altro no (l'opzionalità di [':' port] è gestita in _auth_port_)
-- l'ultimo invece unifica con il caso in cui authority non sia presente e sia quindi "vuoto".
+3 predicates are implemented:
+- the first 2 represent the authority grammar, in one there is userinfo while in the other no (the optionality of [':' port] is managed in _auth_port_)
+- the last one unifies with the case in which authority is not present and is therefore "empty".
 
 ### userinfo
-Si comporta esattamente come scheme.
+It behaves exactly like scheme.
 
 ### host
-Ha 3 predicati:
-- il primo controlla se l'host per caso unifica con _ip_, in tal caso il green cut evita che unifichi con i successivi
-- gli altri 2 invece definiscono ricorsivamente l'altra definizione di host basata su _id_host_, motivo per cui è necessario ricorrere a una `flatten/2` per ottenere una singola lista di caratteri, dato che host stesso restituisce una lista di caratteri.
+It has 3 predicates:
+- the first checks if the host by chance unifies with _ip_, in this case the green cut prevents it from unifying with the following ones
+- the other 2 instead recursively define the other host definition based on _id_host_, which is why you need to use a `flatten/2` to get a single list of characters, since host itself returns a list of characters.
 
 ### port
-Definisce ricorsivamente port come una sequenza di _digit_.
+Recursively defines port as a sequence of _digit_.
 
 ### ip
-Controlla che la lista di caratteri rispetti la grammatica di 4 triplette di _digit_ separate da punti come da definizione.
-Utilizza inoltre il predicato `check_ip/1` che a sua volta si appoggia su `number_string/2` per verificare se ogni tripletta convertita in numero intero sia < = 255.
+Check that the list of characters respects the grammar of 4 triplets of _digit_ separated by periods as per definition.
+It also uses the `check_ip/1` predicate which in turn relies on` number_string/2` to check if any triplet converted to integer is <= 255.
 
-Nota: `number_string` funziona anche su liste di caratteri, come da [Documentazione ufficiale SWI-Prolog sezione 5.2.2](https://www.swi-prolog.org/pldoc/man?section=string-predicates).
-In ogni caso si sarebbe potuto usare una conversione su più step utilizzando prima `string_chars` sulla lista di caratteri e poi `number_string` sulla stringa ottenuta.
+Note: `number_string` also works on character lists, as per [Official SWI-Prolog Documentation section 5.2.2](https://www.swi-prolog.org/pldoc/man?section=string-predicates).
+In any case, a multi-step conversion could have been used using first `string_chars` on the character list and then `number_string` on the resulting string.
 
 ### path
-Definisce ricorsivamente il path e come per _host_ fa uso di `flatten/2` per evitare liste innestate.
+It recursively defines the path and as for _host_ makes use of `flatten/2` to avoid nested lists.
 
 ### query
-Definisce ricorsivamente query e controlla che ogni carattere sia diverso da '#' e quindi valido.
+It recursively defines queries and checks that each character is different from '#' and therefore valid.
 
 ### fragment
-Semplicemente scansiona e ripassa la lista di caratteri così com'è, essendo valido ogni carattere.
+Simply scan and go through the list of characters as is, each character being valid.
 
 ### id
-Definisce ricorsivamente id e inoltre sfrutta `is_id/1` per controllare che i caratteri parsati siano validi e rispettino la grammatica.
+It recursively defines id and also uses `is_id/1` to check that parsed characters are valid and respect grammar.
 
 ### id_host
-Si comporta allo stesso modo di _id_ e fa uso di `is_id_host/1` per controllarne la validità.
+It behaves the same as _id_ and uses `is_id_host/1` to check its validity.
 
 ### digit
-Controlla che il carattere passato sia una cifra da 0 a 9 attraverso il predicato `is_digit/1`.
+Check that the character passed is a digit from 0 to 9 via the `is_digit/1` predicate.
 
 ### zospath
-Ha 2 predicati, uno con la presenza dell'id8 tra parentesi tonde e l'altro con solo id44.
-Inoltre sempre in zospath viene controllata la giusta lunghezza di id44 e id8, e vengono utilizzati `flatten/2` e `atom_chars/2` per ottenere una singola lista di caratteri e convertirla in atomo.
+It has 2 predicates, one with the presence of id8 in round brackets and the other with only id44.
+Also in zospath the correct length of id44 and id8 is checked, and `flatten/2` and `atom_chars/2` are used to get a single character list and convert it to atom.
 
-### id44 (e rest_id44)
-Il predicato in sè controlla solamente che il primo carattere sia un carattere alfabetico utilizzando il predicato `char_type/2` con secondo argomento `alpha`, dopodichè se sono presenti altri caratteri richiama _rest_id44_, che controlla che il resto sia formato da caratteri alfanumerici (tramite _id_alnum_) o punti '.'.
-La definizione ricorsiva di _rest_id44_ non permette che la stringa termini con un punto, inoltre utilizza `flatten/2` sempre per evitare liste innestate.
+### id44 (and rest_id44)
+The predicate itself only checks that the first character is an alphabetic character using the predicate `char_type/2` with the second argument `alpha`, after which if other characters are present it calls _rest_id44_, which checks that the rest is made up of alphanumeric characters (via _id_alnum_) or dots '.'.
+The recursive definition of _rest_id44_ does not allow the string to end with a period, it also uses `flatten/2` always to avoid nested lists.
 
 ### id8
-Controlla che il primo carattere sia alfabetico nuovamente utilizzando `char_type/2` con `alpha`, infine controlla che il resto se presente sia alfanumerico tramite _id_alnum_.
-Utilizza `flatten/2` per evitare liste innestate.
+Check that the first character is alphabetic again using `char_type/2` with `alpha`, finally check that the remainder if present is alphanumeric using _id_alnum_.
+Use `flatten/2` to avoid nested lists.
 
 ### id_alnum
-Controlla che la lista sia formata da solo caratteri alfanumerici utilizzando il predicato `char_type/2` cone secondo argomento `alnum`. Data la definizione ricorsiva utilizza `flatten/2` per ottenere una lista di soli caratteri, priva di liste innestate.
+Check that the list is made up of only alphanumeric characters using the `char_type/2` predicate with the second argument `alnum`. Given the recursive definition it uses `flatten/2` to get a character-only list, with no nested lists.
 
 ## Testing
 
-Il testing è effettuato tramite test automatici scritti seguendo la documentazione sui [Prolog Unit Tests](https://www.swi-prolog.org/pldoc/doc_for?object=section(%27packages/plunit.html%27)).
+The testing is carried out through automatic tests written following the documentation on [Prolog Unit Tests](https://www.swi-prolog.org/pldoc/doc_for?object=section(%27packages/plunit.html%27)).
 
-### Struttura del file di test
-Il file di test `uri-parse.plt` contiene 1309 casi test che il programma passa con esito positivo.
-E' possibile personalizzare e scrivere il proprio file di test in estensione `.plt` partendo dal file già presente.
+### Test files structure
+The test file `uri-parse.plt` contains 1309 test cases which the program passes successfully.
+It is possible to customize and write your own test file in `.plt` extension starting from the file already present.
 
-All'inizio del codice principale del progetto `uri-parse.pl` è stata aggiunta la linea di codice
+The line of code has been added at the beginning of the main code of the `uri-parse.pl` project
 ```sh
 :- module(uri_parse, [uri_parse/2]).
 ```
 
-Per poter avviare i test.
+In order to start the tests.
 
-I test con esito positivo sono del tipo
+Successful tests are of the type
 ```sh
-test(true_scheme) :- uri_parse("s:", uri('s', [], [], 80, [], [], [])).
+test(true_scheme) :- uri_parse("s:", uri ('s', [], [], 80, [], [], [])).
 ```
 
-E quelli con esito negativo
+And those with negative results
 ```sh
 test(false_scheme) :- \+ uri_parse("s", _).
 ```
 
-Come è possibile vedere viene utilizzato l'operatore `\+` che restiituisce `true.` quando non è possibile unificare e risolvere un test sul predicato (e il terminale restituisce dunque `false.`).
+As you can see, the `\+` operator is used which returns `true.` when it is not possible to unify and resolve a predicate test (and the terminal therefore returns `false.`).
 
-La struttura generale è quindi
+The general structure is therefore
 ```sh
-test(id_test) :- predicato(input, risultato). | \+ predicato(input, _).
+test(test_id) :- predicate(input, result). | \+ predicate(input, _).
 ```
 
-Dove:
-- `id_test` è il nome assegnato al test, utile per capire quali test non passano
-- `predicato` è il nome del predicato su cui si sta effetuando il test
-- `input` è l'input che prende il predicato
-- `risultato` è il risultato corretto che si ottiene con l'input passato
-- `\+` è usato quando non si può ottenere un risultato con l'input passato (`_`)
+Where:
+- `id_test` is the name given to the test, useful for understanding which tests fail
+- `predicate` is the name of the predicate being tested
+- `input` is the input that the predicate takes
+- `result` is the correct result obtained with the passed input
+- `\+` is used when a result cannot be obtained with the passed input (`_`)
 
 ### Running Tests
-Per runnare i test personalizzati, assicurarsi che il file `.pl` e il file di test `.plt` siano nella stessa directory.
+To run custom tests, make sure that the `.pl` file and the` .plt` test file are in the same directory.
 
-Dopodichè segnatevi il percorso della directory in cui avete messo il programma e i file di test, che su windows sarà del tipo
+Then mark the path of the directory where you put the program and the test files, which on windows will be of the type
 ```sh
 C:/Users/.../Directory
 ```
 
-A questo punto aprite SWI-Prolog e lanciate il comando:
+At this point, open SWI-Prolog and run the command:
 ```sh
 working_directory(OldDir, 'NewDir').
 ```
-Che vi permetterà di spostarvi nella nuova directory `NewDir`.
-`NewDir` va ovviamente sostituito con il percorso della cartella dove avete messo i file e che avete salvato in precedenza.
+Which will allow you to change to the new `NewDir` directory.
+`NewDir` must obviously be replaced with the path of the folder where you put the files and that you have previously saved.
 
-Dopodichè lanciate i seguenti comandi:
+Then run the following commands:
 ```sh
 ['uri-parse'].
 
@@ -316,11 +316,11 @@ load_test_files([]).
 run_tests.
 ```
 
-In alternativa si può anche lanciare un singolo comando unico:
+Alternatively, you can also run a single single command:
 ```sh
 ['uri-parse'], load_test_files([]), run_tests.
 ```
 
-_Nota: in questo caso il comando è `['uri-parse']`, ma più in generale sarebbe `['test_file_name']` con il nome del vostro file di test `.plt` come `test_file_name`._
+_Note: in this case the command is `['uri-parse']`, but more generally it would be `['test_file_name']` with the name of your test file `.plt` as` test_file_name`._
 
-![Alt text](Tests.png?raw=true "Tests")
+![Alt text](Tests.png?Raw=true "Tests")
